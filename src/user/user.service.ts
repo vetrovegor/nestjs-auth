@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { JwtPayload } from '@auth/interfaces';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Role, User } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { genSaltSync, hashSync } from 'bcrypt';
 
@@ -25,14 +26,19 @@ export class UserService {
         });
     }
 
-    delete(id: string) {
+    delete(id: string, user: JwtPayload) {
+        console.log(id, user.id, user.roles);
+        if (user.id == id || !user.roles.includes(Role.ADMIN)) {
+            throw new ForbiddenException();
+        }
+
         return this.prismaService.user.delete({
             where: { id },
             select: { id: true }
         });
-}
+    }
 
     private hashPassword(password: string) {
-    return hashSync(password, genSaltSync(10));
-}
+        return hashSync(password, genSaltSync(10));
+    }
 }

@@ -1,8 +1,8 @@
-import { BadRequestException, Body, ClassSerializerInterceptor, Controller, Get, Post, Req, Res, UnauthorizedException, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, ClassSerializerInterceptor, Controller, Get, HttpStatus, Post, Req, Res, UnauthorizedException, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
 import { Tokens } from './interfaces';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Cookie, Public, UserAgent } from '@common/decorators';
 import { UserResponse } from '@user/responses';
@@ -45,6 +45,15 @@ export class AuthController {
         const tokens = await this.authService.refresh(refreshToken, agent);
 
         this.setRefreshTokenToCookie(tokens, res);
+    }
+
+    @Get('logout')
+    async logout(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response) {
+        await this.authService.deleteRefreshToken(refreshToken);
+
+        res.clearCookie(REFRESH_TOKEN);
+
+        res.sendStatus(HttpStatus.OK);
     }
 
     private setRefreshTokenToCookie(tokens: Tokens, res: Response) {

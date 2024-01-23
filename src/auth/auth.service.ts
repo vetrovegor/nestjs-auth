@@ -104,4 +104,16 @@ export class AuthService {
             }
         });
     }
+
+    async deleteRefreshToken(token: string) {
+        if (!token) {
+            throw new UnauthorizedException();
+        }
+        
+        return this.prismaService.token.delete({
+            where: {
+                token
+            }
+        });
+    }
 }

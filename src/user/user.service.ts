@@ -12,7 +12,8 @@ export class UserService {
         return this.prismaService.user.create({
             data: {
                 email: user.email,
-                password: this.hashPassword(user.password),
+                password: user.password ? hashSync(user.password, genSaltSync(10)) : null,
+                provider: user.provider,
                 roles: ['USER'],
             },
         });
@@ -21,7 +22,10 @@ export class UserService {
     findOne(idOrEmail: string) {
         return this.prismaService.user.findFirst({
             where: {
-                OR: [{ id: idOrEmail }, { email: idOrEmail }],
+                OR: [
+                    { id: idOrEmail },
+                    { email: idOrEmail }
+                ],
             },
         });
     }
@@ -36,9 +40,5 @@ export class UserService {
             where: { id },
             select: { id: true }
         });
-    }
-
-    private hashPassword(password: string) {
-        return hashSync(password, genSaltSync(10));
     }
 }
